@@ -1,36 +1,22 @@
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
-
-  // auth routes bypass
-  if (req.path.startsWith("/auth")) {
-    return next();
+  if (req.path.startsWith('/auth')) {
+    return next(); // auth route không cần token
   }
 
-  const header = req.headers.authorization;
+  const authHeader = req.headers.authorization;
 
-  if (!header) {
-    return res.status(401).json({
-      message: "Missing token"
-    });
-  }
+  if (!authHeader || !authHeader.startsWith('Bearer '))
+    return res.status(401).json({ message: 'Unauthorized' });
 
-  const token = header.split(" ")[1];
+  const token = authHeader.split(' ')[1];
 
   try {
-    const payload = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
-
-    // propagate identity
-    req.headers["x-user-id"] = payload.id;
-    req.headers["x-user-role"] = payload.role;
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (err) {
-    return res.status(401).json({
-      message: "Invalid token"
-    });
+    return res.status(401).json({ message: 'Invalid token' });
   }
 };
