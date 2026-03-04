@@ -1,9 +1,17 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
-  if (req.path.startsWith('/auth')) {
-    return next(); // auth route không cần token
-  }
+
+  const publicRoutes = [
+    '/auth/login',
+    '/auth/register'
+  ];
+
+  const isPublic = publicRoutes.some(route =>
+    req.originalUrl.startsWith(route)
+  );
+
+  if (isPublic) return next();
 
   const authHeader = req.headers.authorization;
 
@@ -16,7 +24,7 @@ module.exports = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
-  } catch (err) {
+  } catch {
     return res.status(401).json({ message: 'Invalid token' });
   }
 };

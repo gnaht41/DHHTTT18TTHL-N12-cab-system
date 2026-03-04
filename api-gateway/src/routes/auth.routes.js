@@ -3,7 +3,10 @@ const { createServiceProxy } = require('../services/proxy');
 
 router.use(
   '/',
-  createServiceProxy(process.env.AUTH_SERVICE)
+  createServiceProxy(
+    process.env.AUTH_SERVICE,
+    '/auth'
+  )
 );
 
 module.exports = router;
